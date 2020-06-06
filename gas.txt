@@ -1,0 +1,48 @@
+function doGet(e){
+  //æ“¾
+  var device = e.parameter.device;
+  var cal = CalendarApp.getCalendarsByName('§Œä')[0];
+  var calHolidayPrivate = CalendarApp.getCalendarsByName('‹x“ú')[0];
+  var calHolidayGlobal = CalendarApp.getCalendarsByName('“ú–{‚Ìj“ú')[0];
+  //ˆê“ú•ªæ“¾
+  var now = new Date();
+  var later = new Date();
+  later.setDate(now.getDate() + 1);
+  var events = cal.getEvents(now, later);
+  var eventsHolidayPrivate = calHolidayPrivate.getEvents(now, later);
+  var eventsHolidayGlobal = calHolidayGlobal.getEvents(now, later);
+  //‹x“ú“o˜^
+  var holidays = [];
+  for (var event in eventsHolidayPrivate){
+    if(eventsHolidayPrivate[event].isAllDayEvent()){
+      var date = eventsHolidayPrivate[event].getStartTime();
+      if(holidays.indexOf(date.getDay()) == -1)holidays.push(date.getDay());
+    }
+  }
+  for (var event in eventsHolidayGlobal){
+    if(eventsHolidayGlobal[event].isAllDayEvent()){
+      var date = eventsHolidayGlobal[event].getStartTime();
+      if(holidays.indexOf(date.getDay()) == -1)holidays.push(date.getDay());
+    }
+  }
+  //•¶š—ñ‰»
+  var str = "";
+  //‚»‚Ì‚¤‚¿‹x“ú‚É‘O“úƒCƒxƒ“ƒg‚ ‚Á‚½‚ç‚¾‚Á‚½‚ç‚â‚ß‚Æ‚­iisAllDayEvent()j
+  //–¼‘O ‰½•bŒã ON/OFF(1/0) ID
+  for (var event in events){
+    var date = events[event].getStartTime();
+    if(holidays.indexOf(date.getDay()) == -1){
+      if(events[event].getTitle() == device){
+        var second = (events[event].getStartTime() - now);
+        var command = events[event].getDescription();
+        var id = events[event].getId();
+        if(events[event].isRecurringEvent())id+=events[event].getStartTime().getDay();
+        str += second + ' ' + id + ' ' + command + '\n';
+      }
+    }
+  }
+  str = str.substring(0, str.length - 1);
+  Logger.log(str);
+
+  return ContentService.createTextOutput(str);
+}
